@@ -9,11 +9,13 @@ interface UserInfo {
 interface UserContextType {
   user: UserInfo;
   setUser: (u: UserInfo) => void;
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextType>({
   user: { name: "", role: "" },
   setUser: () => {},
+  logout: () => {},
 });
 
 export const useUser = () => useContext(UserContext);
@@ -113,8 +115,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUserState(u);
   };
 
+  const logout = () => {
+    setUserState({ name: "", role: "" });
+    setShowModal(true);
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, logout }}>
       {showModal && !user.name && (
         <LoginModal
           onSubmit={u => {
