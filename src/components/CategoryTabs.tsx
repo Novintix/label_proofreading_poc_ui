@@ -1,5 +1,5 @@
 import { CategoryId } from "@/types/form";
-import { Type, Shield, Barcode, Image } from "lucide-react";
+import { Type, Shield, Barcode, Image, ChevronDown } from "lucide-react";
 
 interface CategoryTabsProps {
   activeCategory: CategoryId | null;
@@ -16,7 +16,7 @@ const tabConfig: { id: CategoryId; label: string; Icon: any }[] = [
 
 const CategoryTabs = ({ activeCategory, changeCounts, onSelect }: CategoryTabsProps) => {
   return (
-    <div className="py-4 px-4">
+    <div className="py-4 px-4 relative z-10 bg-white">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Select Change Category</p>
       <div className="grid grid-cols-4 gap-3">
         {tabConfig.map(({ id, label, Icon }) => {
@@ -26,9 +26,9 @@ const CategoryTabs = ({ activeCategory, changeCounts, onSelect }: CategoryTabsPr
             <button
               key={id}
               onClick={() => onSelect(id)}
-              className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-4 py-4 transition-all ${
+              className={`relative flex flex-col items-center gap-1.5 rounded-lg border-2 px-4 py-4 transition-all ${
                 isActive
-                  ? "border-primary bg-card shadow-sm"
+                  ? "border-primary bg-primary/5 shadow-sm"
                   : "border-border bg-card hover:border-muted-foreground/30"
               }`}
             >
@@ -39,6 +39,11 @@ const CategoryTabs = ({ activeCategory, changeCounts, onSelect }: CategoryTabsPr
               <span className={`text-xs ${count > 0 ? "text-badge-blue-foreground" : "text-muted-foreground"}`}>
                 {count} change{count !== 1 ? "s" : ""}
               </span>
+              {isActive && (
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white rounded-full text-primary shadow-sm border border-primary/20 z-10 translate-y-1/2 flex items-center justify-center w-6 h-6">
+                  <ChevronDown size={14} className="mt-[2px]" />
+                </div>
+              )}
             </button>
           );
         })}

@@ -40,25 +40,25 @@ const AttributeRow = ({
   const hasDefined = changeType !== "";
 
   return (
-    <div className={`${isEven ? "bg-card" : "bg-row-alt"} border-b border-border/30 last:border-b-0`}>
+    <div className="bg-white border-b border-gray-100 last:border-b-0">
       {/* Attribute name row - clickable */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between px-4 py-2.5 pl-8 text-left hover:bg-muted/40 transition-colors"
+        className="flex w-full items-center justify-between px-4 py-3 pl-8 text-left hover:bg-slate-50 transition-colors"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <ChevronRight
-            size={12}
-            className={`text-muted-foreground/60 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
+            size={14}
+            className={`text-[#999999] transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
           />
-          <span className={`text-[13px] font-normal ${isCustom ? "italic text-badge-blue-foreground" : "text-foreground/80"}`}>
+          <span className={`text-[13px] ${isCustom ? "italic text-badge-blue-foreground" : "text-[#555555]"}`}>
             {label}
             {isCustom && <span className="text-badge-blue-foreground"> *</span>}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center pr-2">
           {hasDefined && (
-            <span className="inline-flex items-center rounded-full bg-badge-green px-2 py-0.5 text-[11px] font-medium text-badge-green-foreground">
+            <span className="text-[12px] font-bold text-[#333333]">
               {changeType}
             </span>
           )}

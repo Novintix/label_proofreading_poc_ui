@@ -125,7 +125,7 @@ export const FormValidationSummary = () => {
   const total = Object.values(totalsByStatus).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="bg-card border border-border mt-6 w-full shadow-sm rounded-sm">
+    <div className="bg-card border border-border w-full shadow-sm rounded-sm">
       <div className="bg-secondary/50 px-4 py-2 border-b border-border">
         <span className="text-xs font-semibold uppercase tracking-wider text-[#333333]">Form Validation Summary</span>
       </div>

@@ -1,9 +1,10 @@
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ScanLine, RefreshCw, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { ArrowLeft, ScanLine, RefreshCw, ZoomIn, ZoomOut, RotateCcw, ArrowRight, FileText } from "lucide-react";
 import { FormDataContextView } from "@/components/FormDataContextView";
 import { FormValidationSummary, FormValidationDetails } from "@/components/FormValidationSummary";
-import DiscrepancyDashboard from "@/components/DiscrepancyDashboard";
 import Dropzone from "@/components/Dropzone";
+import StepIndicator from "@/components/StepIndicator";
+import ProfileDropdown from "@/components/ProfileDropdown";
 import { useState, useRef, useCallback } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { PLACEHOLDER_LABEL_CHILD } from "@/components/VisualDiffViewer";
@@ -13,7 +14,7 @@ const CompareFormNew = () => {
   const location = useLocation();
   const formData = location.state?.formData ?? dummyFormDataScene2;
   const navigate = useNavigate();
-  const [childFile, setChildFile] = useState<File | null>(null);
+  const [childFile, setChildFile] = useState<File | null>(location.state?.childFile || null);
   const [analysisRun, setAnalysisRun] = useState(false);
 
   const imageRef = useRef<any>(null);
@@ -31,123 +32,138 @@ const CompareFormNew = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-primary text-primary-foreground px-6 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <ScanLine className="h-5 w-5" />
-            <h1 className="text-lg font-semibold tracking-tight">
-              Label Proofing
-            </h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-primary-foreground/90 font-mono">
-          <Link
-            to="/"
-            className="bg-white text-primary px-4 py-1.5 font-semibold uppercase tracking-wider hover:bg-gray-100 transition-colors flex items-center gap-2 rounded-sm shadow-sm"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Home
+    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
+      {/* Navbar */}
+      <nav className="bg-primary text-white px-6 py-0 flex items-center justify-between shadow-md sticky top-0 z-40" style={{ minHeight: 52 }}>
+        <div className="flex items-center gap-4 h-[52px]">
+          <Link to="/form-summary" state={{ formData }} className="flex items-center gap-1 border-r border-white/20 pr-4 h-full text-white/80 hover:text-white transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">Back</span>
           </Link>
-          <button
-            onClick={() => window.location.href = window.location.pathname}
-            className="bg-white text-primary px-4 py-1.5 font-semibold uppercase tracking-wider hover:bg-gray-100 transition-colors flex items-center gap-2 rounded-sm shadow-sm"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Refresh
-          </button>
-        </div>
-      </header>
-      
-      <div className="flex flex-col w-full min-h-[calc(100vh-65px)]">
-        <div className="flex w-full flex-1">
-          {/* Left Panel: Form Data (Read-only) */}
-          <div className="w-1/2 border-r border-[#F4F4F4] bg-[#F4F4F4]/30 p-8 overflow-y-auto">
-            <h2 className="text-xl font-bold text-[#D51900] mb-6 border-b border-[#D51900]/20 pb-2">Proof Request Context</h2>
-            <FormDataContextView formData={formData} />
+          <div className="flex items-center gap-2">
+            <ScanLine size={18} />
+            <span className="text-sm font-bold tracking-tight uppercase">LabelX Proofreading</span>
+            <span className="text-white/30 mx-1">|</span>
+            <span className="text-xs text-white/70 font-medium">Proofing Analysis</span>
           </div>
-          
-          {/* Right Panel: Document Viewer */}
-          <div className="w-1/2 p-8 bg-gray-50 flex flex-col relative overflow-hidden">
-            <h2 className="text-xl font-bold text-[#333333] mb-6 border-b border-gray-200 pb-2">Upload the New Version Label</h2>
-            <div className="mb-6 flex-shrink-0">
-              <Dropzone label="Upload New Version Image/PDF" file={childFile} onFileSelect={setChildFile} />
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="hidden md:block">
+            <StepIndicator current={3} />
+          </div>
+          <ProfileDropdown />
+        </div>
+      </nav>
+      <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center justify-between text-xs sticky top-[52px] z-30 shadow-sm">
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2">
+            <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">CR</span>
+            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.crNumber || "CR-2025-0042"}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">SKU</span>
+            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.sku || "08714729-MX"}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">REV</span>
+            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.revision || "Rev B → Rev C"}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">Requested By</span>
+          <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.requesterName || "Athmika"}</span>
+        </div>
+      </div>
+      <div className="flex w-full flex-1 min-h-0 bg-white shadow-sm z-0">
+        {/* Left Panel: Document Viewer (Static) */}
+        <div className="w-1/2 p-6 bg-slate-50 flex flex-col border-r border-gray-200">
+          <div className="flex-1 flex flex-col min-h-0 relative">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between border border-[#e2e8f0] bg-[#fafafa] px-5 py-3 border-b-0 flex-shrink-0 shadow-sm rounded-t-sm">
+              <span className="text-[13px] font-bold uppercase tracking-widest text-[#5e6e82]">
+                New Version Label
+              </span>
+              <div className="flex items-center gap-2">
+                <button onClick={handleZoomIn} className="p-[7px] hover:bg-slate-50 transition-colors border border-[#e2e8f0] bg-white shadow-sm rounded-sm" title="Zoom In">
+                  <ZoomIn className="h-[15px] w-[15px] text-slate-600 stroke-[1.5]" />
+                </button>
+                <button onClick={handleZoomOut} className="p-[7px] hover:bg-slate-50 transition-colors border border-[#e2e8f0] bg-white shadow-sm rounded-sm" title="Zoom Out">
+                  <ZoomOut className="h-[15px] w-[15px] text-slate-600 stroke-[1.5]" />
+                </button>
+                <button onClick={handleReset} className="p-[7px] hover:bg-slate-50 transition-colors border border-[#e2e8f0] bg-white shadow-sm rounded-sm" title="Reset">
+                  <RotateCcw className="h-[15px] w-[15px] text-slate-600 stroke-[1.5]" />
+                </button>
+              </div>
             </div>
-            
-            <div className="mb-6 flex justify-center">
-              <button
-                onClick={() => setAnalysisRun(true)}
-                className="bg-[#D51900] text-white px-6 py-2 text-sm font-semibold uppercase tracking-wider hover:bg-[#b01300] transition-colors rounded shadow-sm"
-              >
-                RUN PROOFING ANALYSIS
-              </button>
+            {/* Image display with pan/zoom */}
+            <div className="flex-1 border border-[#e2e8f0] shadow-inner flex items-center justify-center bg-[#f8fafc] relative overflow-hidden rounded-b-sm">
+              <TransformWrapper ref={imageRef} minScale={0.5} maxScale={4} initialScale={1}>
+                <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <img 
+                    src={PLACEHOLDER_LABEL_CHILD} 
+                    alt="New Version Label" 
+                    className="max-w-full max-h-full object-contain pointer-events-none" 
+                  />
+                </TransformComponent>
+              </TransformWrapper>
             </div>
-            
-            <div className="flex-1 flex flex-col min-h-[400px]">
-              {/* Toolbar */}
-              <div className="flex items-center justify-between border border-border bg-white px-4 py-2 border-b-0">
-                <span className="text-sm font-bold uppercase tracking-wider text-[#333333]">
-                  New Version Label
-                </span>
-                <div className="flex items-center gap-1">
-                    <button onClick={handleZoomIn} className="p-1.5 hover:bg-secondary transition-colors border border-border bg-white rounded-sm shadow-sm" title="Zoom In">
-                      <ZoomIn className="h-4 w-4 text-gray-700" />
-                    </button>
-                    <button onClick={handleZoomOut} className="p-1.5 hover:bg-secondary transition-colors border border-border bg-white rounded-sm shadow-sm" title="Zoom Out">
-                      <ZoomOut className="h-4 w-4 text-gray-700" />
-                    </button>
-                    <button onClick={handleReset} className="p-1.5 hover:bg-secondary transition-colors border border-border bg-white rounded-sm shadow-sm" title="Reset">
-                      <RotateCcw className="h-4 w-4 text-gray-700" />
-                    </button>
-                    {childFile && (
-                      <button onClick={() => setChildFile(null)} className="ml-2 text-xs font-semibold uppercase tracking-wider bg-gray-200 text-gray-700 hover:bg-gray-300 px-3 py-1.5 rounded shadow-sm transition-colors border border-border">
-                        Remove
-                      </button>
-                    )}
+          </div>
+        </div>
+
+        {/* Right Panel: Scrollable Analysis Area */}
+        <div className="w-1/2 bg-white flex flex-col h-full overflow-y-auto">
+          {!analysisRun ? (
+            <div className="p-8 bg-slate-50 min-h-full">
+              <div className="bg-[#f0f7ff] border border-[#d6e8fc] p-6 w-full max-w-2xl mx-auto flex flex-col gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="text-[#0066cc] shrink-0 mt-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  </div>
+                  <div className="text-sm text-[#333333] leading-relaxed flex-1">
+                    <span className="font-bold block mb-1.5 uppercase tracking-widest text-[#0066cc] text-[13px]">Ready for Analysis</span>
+                    Your label has been successfully loaded into the viewer. Execute the proofing analysis to automatically validate its content against the submitted form requirements.
                   </div>
                 </div>
-                {/* Image display with pan/zoom */}
-                <div className="flex-1 border border-border shadow-inner flex items-center justify-center bg-[#F4F4F4]/50 relative overflow-hidden">
-                  <TransformWrapper ref={imageRef} minScale={0.5} maxScale={4} initialScale={1}>
-                    <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <img 
-                        src={childFile ? URL.createObjectURL(childFile) : PLACEHOLDER_LABEL_CHILD} 
-                        alt="New Version Label" 
-                        className="max-w-full max-h-full object-contain pointer-events-none" 
-                      />
-                    </TransformComponent>
-                  </TransformWrapper>
+                
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setAnalysisRun(true)}
+                    className="flex items-center justify-center gap-2 px-8 py-3 text-[12px] font-bold uppercase tracking-widest transition-all shadow-sm bg-primary text-white hover:opacity-90 rounded-sm"
+                  >
+                    Run Proofing Analysis
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
-          </div>
+            </div>
+          ) : (
+            <div className="p-6 pb-32 space-y-6 bg-slate-50 min-h-full">
+              {/* Form Validation Summary */}
+              <div className="space-y-4">
+                <FormValidationSummary />
+                <FormValidationDetails />
+              </div>
+            </div>
+          )}
         </div>
       </div>
-      
-      {/* Analysis Results */}
+
+      {/* Global Action Footer */}
       {analysisRun && (
-        <div className="p-8 bg-gray-50 border-t border-gray-200 space-y-6">
-          <h2 className="text-xl font-bold text-[#333333] border-b border-gray-200 pb-2">Analysis Results</h2>
-          <DiscrepancyDashboard formData={formData} />
+        <div className="bg-white border-t border-gray-200 px-8 py-3.5 flex items-center justify-between z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] shrink-0">
+          <div className="font-mono text-xs text-slate-400 font-medium tracking-wide flex items-center gap-4">
+            <span>Generated: {new Date().toISOString().split("T")[0]}</span>
+            <span>Ref: {formData?.metadata?.crNumber || "CR-2025-0042"}</span>
+          </div>
+          <button
+            onClick={() => navigate('/report', { state: { scenario: 'B', formData } })}
+            className="flex items-center gap-2 bg-[#d51900] text-white px-6 py-2.5 text-[13px] font-bold uppercase tracking-widest hover:bg-[#b01300] transition-colors rounded shadow-sm"
+          >
+            <FileText className="w-4 h-4" />
+            Generate Report
+          </button>
         </div>
       )}
-
-      {/* Form Validation Summary + Details — always visible */}
-      <div className="px-8 pb-6 bg-gray-50 space-y-4">
-        <FormValidationSummary />
-        <FormValidationDetails />
-      </div>
-
-      {/* Footer stamp */}
-      <footer className="mt-auto border-t border-border px-8 pt-4 pb-8 flex items-center justify-between text-xs text-muted-foreground font-mono bg-white">
-        <span>Report generated: {new Date().toISOString().split("T")[0]}</span>
-        <button
-          onClick={() => navigate('/report', { state: { scenario: 'B', formData } })}
-          className="bg-[#D51900] text-white px-6 py-2 text-sm font-semibold uppercase tracking-wider hover:bg-[#b01300] transition-colors rounded shadow-sm font-sans"
-        >
-          Generate Report
-        </button>
-      </footer>
     </div>
   );
 };

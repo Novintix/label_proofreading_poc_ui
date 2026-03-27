@@ -1,6 +1,9 @@
 import { useTheme } from './ThemeContext';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/context/UserContext';
+import { ArrowLeft, Home } from 'lucide-react';
+import ProfileDropdown from '@/components/ProfileDropdown';
 
 interface ReportHeaderProps {
   activeScenario: 'A' | 'B' | 'C';
@@ -30,6 +33,7 @@ function getISTDateParts() {
 export function ReportHeader({ activeScenario, onScenarioChange, reportId: propReportId }: ReportHeaderProps) {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { user } = useUser();
   const { yyyy, mm, dd } = getISTDateParts();
   const reportId = propReportId ?? `${yyyy}${mm}${dd}0001`;
 
@@ -124,46 +128,64 @@ export function ReportHeader({ activeScenario, onScenarioChange, reportId: propR
 
   return (
     <header
-      className="report-banner w-full px-8 py-6"
+      className="report-banner w-full"
       style={{ backgroundColor: theme.primary, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}
     >
-      <div className="report-content-wrap max-w-[1600px] mx-auto flex items-center justify-between">
-        <div className="space-y-1.5">
-          <h1 className="report-banner-title text-white text-2xl font-bold tracking-tight">Label Proofing Report</h1>
-          <div className="report-banner-id text-white/80 text-xs">Report ID: {reportId}</div>
-        </div>
-        <div className="flex flex-col items-end gap-3">
-          <img src="/novintix-logo.png" alt="Novintix" className="report-banner-logo h-8 w-auto" />
-          <div className="print:hidden flex gap-2 items-center">
-            <div className="text-gray-300 text-xs mr-1">
-              Generated: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })} UTC
-            </div>
-            <button
-              onClick={() => window.history.back()}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors border-2 border-white/40 hover:border-white text-white"
-              title="Go back"
-            >
-              Back
-            </button>
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors border-2 border-white/40 hover:border-white text-white"
-              title="Go to Home"
-            >
-              Home
-            </button>
-            <button
-              onClick={handleDownloadPDF}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors border-2"
-              style={{ backgroundColor: theme.accent, borderColor: theme.accent, color: '#fff' }}
-              title="Download as PDF"
-            >
-              <DownloadIcon />
-              PDF
-            </button>
-            <ThemeSwitcher />
+      {/* ── On-screen nav bar — hidden when printing ──────────── */}
+      <div
+        className="print:hidden border-b px-6 flex items-center justify-between"
+        style={{ minHeight: 52, borderColor: 'rgba(255,255,255,0.15)' }}
+      >
+        {/* Left: back + brand */}
+        <div className="flex items-center gap-4 h-[52px]">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1 border-r pr-4 h-full text-white/80 hover:text-white transition-colors"
+            style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">Back</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold tracking-tight uppercase text-white">LabelX Proofreading</span>
+            <span className="text-white/30 mx-1">|</span>
+            <span className="text-xs text-white/70 font-medium">Report</span>
           </div>
         </div>
+
+        {/* Right: actions + user */}
+        <div className="flex items-center gap-2">
+          <div className="text-white/60 text-[11px] mr-2 hidden lg:block">
+            Generated: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1.5 border border-white/25 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10 transition-colors"
+          >
+            <Home className="h-3 w-3" />
+            Home
+          </button>
+          <button
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors border border-transparent"
+            style={{ backgroundColor: theme.accent, color: '#fff' }}
+            title="Download as PDF"
+          >
+            <DownloadIcon />
+            PDF
+          </button>
+          <ThemeSwitcher />
+          <ProfileDropdown />
+        </div>
+      </div>
+
+      {/* ── Print / report banner ─────────────────────────────── */}
+      <div className="report-content-wrap max-w-[1600px] mx-auto px-8 py-6 flex items-center justify-between">
+        <div className="space-y-1.5">
+          <h1 className="report-banner-title text-white text-2xl font-bold tracking-tight">LabelX Proofreading Report</h1>
+          <div className="report-banner-id text-white/80 text-xs">Report ID: {reportId}</div>
+        </div>
+        <img src="/novintix-logo.png" alt="Novintix" className="report-banner-logo h-8 w-auto" />
       </div>
     </header>
   );

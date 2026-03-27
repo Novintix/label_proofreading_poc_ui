@@ -46,25 +46,25 @@ const AttributeGroup = ({
       {/* Group header — visually distinct from attribute rows */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-4 py-3 bg-section-header hover:bg-muted transition-colors"
+        className="flex w-full items-center justify-between px-4 py-3 bg-white hover:bg-slate-50 transition-colors border-b border-gray-100"
       >
-        <div className="flex items-center gap-2.5">
-          <FolderOpen size={15} className="text-primary/70" />
-          <ChevronDown
-            size={14}
-            className={`text-muted-foreground transition-transform duration-200 ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-          <span className="text-sm font-semibold text-foreground tracking-tight">{name}</span>
+        <div className="flex items-center gap-3">
+          <FolderOpen size={16} className="text-[#D51900] stroke-[1.5]" />
+          <span className="text-[14px] font-semibold text-[#333333]">{name}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{allAttrs.length} items</span>
+        <div className="flex items-center gap-3">
+          <span className="text-[13px] text-[#666666]">{allAttrs.length} items</span>
           {definedCount > 0 && (
-            <span className="inline-flex items-center rounded-full bg-badge-blue px-2.5 py-0.5 text-xs font-medium text-badge-blue-foreground">
+            <span className="text-[13px] font-bold text-[#333333]">
               {definedCount} defined
             </span>
           )}
+          <ChevronDown
+            size={14}
+            className={`text-muted-foreground transition-transform duration-200 ml-1 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
         </div>
       </button>
 
