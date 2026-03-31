@@ -5,7 +5,7 @@ import { FormValidationSummary, FormValidationDetails } from "@/components/FormV
 import Dropzone from "@/components/Dropzone";
 import StepIndicator from "@/components/StepIndicator";
 import ProfileDropdown from "@/components/ProfileDropdown";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { PLACEHOLDER_LABEL_CHILD } from "@/components/VisualDiffViewer";
 import { dummyFormDataScene2 } from "@/data/dummyData";
@@ -16,6 +16,19 @@ const CompareFormNew = () => {
   const navigate = useNavigate();
   const [childFile, setChildFile] = useState<File | null>(location.state?.childFile || null);
   const [analysisRun, setAnalysisRun] = useState(false);
+  
+  // Create a preview URL for the child file if it exists
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  
+  useEffect(() => {
+    if (childFile) {
+      const url = URL.createObjectURL(childFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl("/LCN-187301111_1_Rev-E.png"); // Default fallback
+    }
+  }, [childFile]);
 
   const imageRef = useRef<any>(null);
 
@@ -57,21 +70,21 @@ const CompareFormNew = () => {
       <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center justify-between text-xs sticky top-[52px] z-30 shadow-sm">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
-            <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">CR</span>
-            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.crNumber || "CR-2025-0042"}</span>
+            <span className="text-gray-400 mr-1.5 font-bold tracking-widest uppercase text-[10px]">CR Number</span>
+            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.cr_number || "CR-2025-0042"}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">SKU</span>
-            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.sku || "08714729-MX"}</span>
+            <span className="text-gray-400 mr-1.5 font-bold tracking-widest uppercase text-[10px]">SKU</span>
+            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.part_number || "08714729-MX"}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">REV</span>
-            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.revision || "Rev B → Rev C"}</span>
+            <span className="text-gray-400 mr-1.5 font-bold tracking-widest uppercase text-[10px]">Revision</span>
+            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.label_version || "REV-D"}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">Requested By</span>
-          <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.requesterName || "Athmika"}</span>
+          <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.requested_by || "Athmika"}</span>
         </div>
       </div>
       <div className="flex w-full flex-1 min-h-0 bg-white shadow-sm z-0">
@@ -99,8 +112,8 @@ const CompareFormNew = () => {
             <div className="flex-1 border border-[#e2e8f0] shadow-inner flex items-center justify-center bg-[#f8fafc] relative overflow-hidden rounded-b-sm">
               <TransformWrapper ref={imageRef} minScale={0.5} maxScale={4} initialScale={1}>
                 <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <img 
-                    src={PLACEHOLDER_LABEL_CHILD} 
+                   <img 
+                    src={previewUrl} 
                     alt="New Version Label" 
                     className="max-w-full max-h-full object-contain pointer-events-none" 
                   />
@@ -150,14 +163,14 @@ const CompareFormNew = () => {
 
       {/* Global Action Footer */}
       {analysisRun && (
-        <div className="bg-white border-t border-gray-200 px-8 py-3.5 flex items-center justify-between z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] shrink-0">
+        <div className="bg-white border-t border-[#e2e8f0] px-8 py-2.5 flex items-center justify-between z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] shrink-0">
           <div className="font-mono text-xs text-slate-400 font-medium tracking-wide flex items-center gap-4">
             <span>Generated: {new Date().toISOString().split("T")[0]}</span>
             <span>Ref: {formData?.metadata?.crNumber || "CR-2025-0042"}</span>
           </div>
           <button
             onClick={() => navigate('/report', { state: { scenario: 'B', formData } })}
-            className="flex items-center gap-2 bg-[#d51900] text-white px-6 py-2.5 text-[13px] font-bold uppercase tracking-widest hover:bg-[#b01300] transition-colors rounded shadow-sm"
+            className="flex items-center gap-2 bg-[#d51900] text-white px-8 py-3 text-[13px] font-bold uppercase tracking-widest hover:bg-[#b01300] transition-colors rounded-lg shadow-md"
           >
             <FileText className="w-4 h-4" />
             Generate Report

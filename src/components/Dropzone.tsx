@@ -6,9 +6,10 @@ interface DropzoneProps {
   files: File[];
   onFilesSelect: (files: File[]) => void;
   multiple?: boolean;
+  alwaysShowUploadBox?: boolean;
 }
 
-const Dropzone = ({ label, files, onFilesSelect, multiple = false }: DropzoneProps) => {
+const Dropzone = ({ label, files, onFilesSelect, multiple = false, alwaysShowUploadBox = false }: DropzoneProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDrop = useCallback(
@@ -54,15 +55,13 @@ const Dropzone = ({ label, files, onFilesSelect, multiple = false }: DropzonePro
         {label}
       </label>
 
-      {/* Show single file view if non-multiple and has a file */}
-      {files.length > 0 && !multiple ? (
-        <div className="border border-[#e2e8f0] bg-white p-4 flex items-center justify-between shadow-sm">
+      {/* Show single file view if non-multiple and has a file, and not forced to show upload box */}
+      {files.length > 0 && !multiple && !alwaysShowUploadBox ? (
+        <div className="border border-[#e2e8f0] bg-white p-3 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-8 w-8 rounded bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
-              <FileText className="h-4 w-4 text-primary" />
-            </div>
+            <FileText className="h-4 w-4 text-[#d51900] shrink-0" />
             <div className="min-w-0 flex flex-col">
-              <span className="text-sm font-semibold text-slate-700 truncate">{files[0].name}</span>
+              <span className="text-[13px] font-semibold text-slate-700 truncate">{files[0].name}</span>
               <span className="text-[10px] text-slate-400 font-medium">
                 {(files[0].size / 1024).toFixed(1)} KB
               </span>
@@ -102,17 +101,40 @@ const Dropzone = ({ label, files, onFilesSelect, multiple = false }: DropzonePro
               className="hidden"
             />
           </label>
+          
+          {/* List of files for single-file mode with alwaysShowUploadBox */}
+          {!multiple && alwaysShowUploadBox && files.length > 0 && (
+            <div className="space-y-2">
+              {files.map((f, idx) => (
+                <div key={`${f.name}-${idx}`} className="border border-[#e2e8f0] bg-white p-3 flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FileText className="h-4 w-4 text-[#d51900] shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold text-slate-700 truncate">{f.name}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{(f.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeFile(idx)}
+                    className="p-1.5 hover:bg-slate-50 text-slate-400 hover:text-red-500 transition-colors rounded-full"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* List of files for multiple mode */}
           {multiple && files.length > 0 && (
             <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
               {files.map((f, idx) => (
-                <div key={`${f.name}-${idx}`} className="border border-slate-100 bg-white p-3 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                <div key={`${f.name}-${idx}`} className="border border-[#e2e8f0] bg-white p-3 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
                   <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <FileText className="h-4 w-4 text-[#d51900] shrink-0" />
                     <div className="min-w-0">
-                      <div className="text-[12px] font-semibold text-slate-700 truncate">{f.name}</div>
-                      <div className="text-[10px] text-slate-400">{(f.size / 1024).toFixed(1)} KB</div>
+                      <div className="text-[13px] font-semibold text-slate-700 truncate">{f.name}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{(f.size / 1024).toFixed(1)} KB</div>
                     </div>
                   </div>
                   <button

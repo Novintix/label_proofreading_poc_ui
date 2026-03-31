@@ -52,7 +52,7 @@ export const FormDataContextView = ({ formData }: { formData: any }) => {
             <span className="font-medium">{formData.metadata?.cr_number || "N/A"}</span>
           </div>
           <div>
-            <span className="text-[#666666] block text-xs">Part Number</span>
+            <span className="text-[#666666] block text-xs">SKU</span>
             <span className="font-medium">{formData.metadata?.part_number || "N/A"}</span>
           </div>
           <div>

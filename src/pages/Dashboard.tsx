@@ -157,11 +157,11 @@ const Dashboard = () => {
       </main>
 
       {/* Footer */}
-      <footer className="sticky bottom-0 z-40 border-t border-gray-200 bg-white px-6 py-3 flex items-center justify-between shadow-[0_-4px_12px_rgba(0,0,0,0.03)] shrink-0">
-        <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">
+      <footer className="sticky bottom-0 z-40 border-t border-[#e2e8f0] bg-white px-8 py-2.5 flex items-center justify-between shadow-[0_-4px_12px_rgba(0,0,0,0.05)] shrink-0">
+        <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wider font-medium">
           LabelX Proofreading · Internal Use Only
         </span>
-        <span className="text-[10px] text-gray-400 font-mono">
+        <span className="text-[10px] text-gray-400 font-mono font-medium">
           v1.0 · {new Date().getFullYear()}
         </span>
       </footer>

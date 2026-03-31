@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { ScanLine, ArrowLeft, ArrowRight, ChevronRight, Edit2, FileText, Upload, X, CheckCircle2, Hash, Package, Tag, User, Calendar, Layers } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CATEGORIES } from "@/data/attributes";
 import { dummyFormDataScene2 } from "@/data/dummyData";
 import { FormMetadata } from "@/types/form";
@@ -43,11 +43,50 @@ const FormSummaryPage = () => {
   const formData = location.state?.formData ?? dummyFormDataScene2;
   const [searchParams] = useSearchParams();
   const flow = searchParams.get("flow") || "to-split";
-  const [baseFile, setBaseFile] = useState<File | null>(new File([""], "current_version_rev_B.pdf", { type: "application/pdf" }));
-  const [childFile, setChildFile] = useState<File | null>(new File([""], "new_version_rev_C.pdf", { type: "application/pdf" }));
+  const [baseFile, setBaseFile] = useState<File[]>([]);
+  const [childFile, setChildFile] = useState<File[]>([]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const metadata: FormMetadata = formData?.metadata ?? {};
+
+  // Auto-populate demo files for Scenarios 2 & 3
+  useEffect(() => {
+    const loadDemoFiles = async () => {
+      // Scenario 2 (to-split) or Scenario 3 (to-compare)
+      if (flow === "to-split" || flow === "to-compare") {
+        try {
+          const filesToLoad = [];
+
+          // Both scenarios need the new version label
+          filesToLoad.push({
+            url: "/LCN-187301111_1_Rev-E.png",
+            name: "LCN-187301111_1_Rev-E.png",
+            setter: setChildFile
+          });
+
+          // Scenario 3 (to-compare) also needs the current version label
+          if (flow === "to-compare") {
+            filesToLoad.push({
+              url: "/LCN-187301111_1_Rev-D.png",
+              name: "LCN-187301111_1_Rev-D.png",
+              setter: setBaseFile
+            });
+          }
+
+          for (const item of filesToLoad) {
+            const resp = await fetch(item.url);
+            const blob = await resp.blob();
+            const file = new File([blob], item.name, { type: "image/png" });
+            item.setter([file]);
+          }
+        } catch (error) {
+          console.error("Failed to auto-populate demo files:", error);
+        }
+      }
+    };
+
+    loadDemoFiles();
+  }, [flow]);
 
   // Parse label revision display
   const labelVersion = metadata.label_version || "";
@@ -80,11 +119,11 @@ const FormSummaryPage = () => {
   const handleSubmit = () => {
     setSubmitAttempted(true);
     if (flow === "to-compare") {
-      if (!childFile || !baseFile) return;
+      if (childFile.length === 0 || baseFile.length === 0) return;
       navigate("/compare", { state: { formData, baseFile, childFile } });
     } else {
-      if (!childFile) return;
-      navigate("/compare-form-new", { state: { formData, childFile } });
+      if (childFile.length === 0) return;
+      navigate("/compare-form-new", { state: { formData, childFile: childFile[0] } });
     }
   };
 
@@ -141,7 +180,7 @@ const FormSummaryPage = () => {
                 {metadata.cr_number && (
                   <MetaItem icon={Hash} label="CR Number" value={metadata.cr_number} />
                 )}
-                <MetaItem icon={Package} label="SKU / Part Number" value={metadata.part_number} />
+                <MetaItem icon={Package} label="SKU" value={metadata.part_number} />
                 {/* Label Revision with two-box display */}
                 <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
                   <div className="w-7 h-7 rounded bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 mt-0.5">
@@ -233,35 +272,38 @@ const FormSummaryPage = () => {
                     ? "Upload both the current and new label versions to execute a full side-by-side comparison against expected changes."
                     : "Upload the new label version to be inspected against the expected changes defined in the form."}
                 </p>
-                
+
                 {flow === "to-compare" ? (
                   <div className="grid grid-cols-1 gap-6">
                     <Dropzone
                       label="Current Version Label"
-                      file={baseFile}
-                      onFileSelect={setBaseFile}
+                      files={baseFile}
+                      onFilesSelect={setBaseFile}
+                      multiple={false}
                     />
                     <Dropzone
                       label="New Version Label"
-                      file={childFile}
-                      onFileSelect={setChildFile}
+                      files={childFile}
+                      onFilesSelect={setChildFile}
+                      multiple={false}
                     />
                   </div>
                 ) : (
                   <Dropzone
                     label="New Version Label"
-                    file={childFile}
-                    onFileSelect={setChildFile}
+                    files={childFile}
+                    onFilesSelect={setChildFile}
+                    multiple={false}
                   />
                 )}
 
-                {submitAttempted && ((flow === "to-compare" && (!childFile || !baseFile)) || (flow !== "to-compare" && !childFile)) && (
+                {submitAttempted && ((flow === "to-compare" && (childFile.length === 0 || baseFile.length === 0)) || (flow !== "to-compare" && childFile.length === 0)) && (
                   <p className="text-xs text-red-600 font-semibold flex items-center gap-1">
                     <X className="h-3 w-3" />
                     {flow === "to-compare" ? "Both label files are required" : "A label file is required to proceed"}
                   </p>
                 )}
-                {((flow === "to-compare" && childFile && baseFile) || (flow !== "to-compare" && childFile)) && (
+                {((flow === "to-compare" && childFile.length > 0 && baseFile.length > 0) || (flow !== "to-compare" && childFile.length > 0)) && (
                   <div className="flex items-center gap-2 text-xs text-green-700 font-semibold bg-green-50 border border-green-200 px-3 py-2">
                     <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                     {flow === "to-compare" ? "Files ready for analysis" : "File ready for analysis"}
@@ -276,11 +318,10 @@ const FormSummaryPage = () => {
               <button
                 onClick={handleSubmit}
                 disabled={flow === "to-compare" ? (!childFile || !baseFile) : !childFile}
-                className={`w-full flex items-center justify-center gap-3 py-3.5 text-[14px] font-bold uppercase tracking-widest transition-all ${
-                  (flow === "to-compare" ? (childFile && baseFile) : childFile)
-                    ? "bg-primary text-white hover:opacity-90 shadow-sm"
-                    : "bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed"
-                }`}
+                className={`w-full flex items-center justify-center gap-3 py-3.5 text-[14px] font-bold uppercase tracking-widest transition-all ${(flow === "to-compare" ? (childFile && baseFile) : childFile)
+                  ? "bg-primary text-white hover:opacity-90 shadow-sm"
+                  : "bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed"
+                  }`}
               >
                 Submit for Analysis
                 <ArrowRight className="h-4 w-4" />

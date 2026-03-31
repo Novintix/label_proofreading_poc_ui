@@ -1,24 +1,34 @@
-import { useState } from "react";
-import { ScanLine, RefreshCw, ArrowLeft, FileText, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download, RefreshCw, FileText, Activity, AlertCircle, Play, ScanLine, ArrowLeft } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Dropzone from "@/components/Dropzone";
 import VisualDiffViewer from "@/components/VisualDiffViewer";
 import DataTables from "@/components/DataTables";
 import ProfileDropdown from "@/components/ProfileDropdown";
+import StepIndicator from "@/components/StepIndicator";
 import { toast } from "sonner";
+import { discrepancies } from "@/data/dummyData";
 
 const Index = () => {
-  const [baseFile, setBaseFile] = useState<File[]>([]);
-  const [childFiles, setChildFiles] = useState<File[]>([]);
-  const [analysisRun, setAnalysisRun] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [apiResults, setApiResults] = useState<any[]>([]);
-  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
-
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state?.formData;
+
+  const [baseFile, setBaseFile] = useState<File[]>(location.state?.baseFile || []);
+  const [childFiles, setChildFiles] = useState<File[]>(location.state?.childFile || []);
+  const [analysisRun, setAnalysisRun] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Auto-run analysis for Scenario 3
+  useEffect(() => {
+    if (formData && baseFile.length > 0 && childFiles.length > 0 && !analysisRun && !loading) {
+      handleRunAnalysis();
+    }
+  }, [formData, baseFile, childFiles, analysisRun, loading]);
+
+  const [progress, setProgress] = useState(0);
+  const [apiResults, setApiResults] = useState<any[]>([]);
+  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
 
   const handleRunAnalysis = async () => {
     if (baseFile.length === 0 || childFiles.length === 0) {
@@ -26,9 +36,20 @@ const Index = () => {
       return;
     }
 
-    setLoading(true);
+    if (!formData) setLoading(true);
     setProgress(0);
     setAnalysisRun(false);
+
+    // For Scenario 3, pre-populate mock results immediately so components are shown
+    if (formData) {
+      setApiResults([{
+        filename: "Analysis Result 1",
+        annotated_base_image: undefined,
+        annotated_child_image: undefined,
+        parsedItems: discrepancies
+      }]);
+      setAnalysisRun(true);
+    }
 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
@@ -77,7 +98,10 @@ const Index = () => {
       setAnalysisRun(true);
     } catch (error) {
       console.error("Comparison error:", error);
-      toast.error("Error running analysis. Check console for details.");
+      // For Scenario 3, we already have mock results, so just fail silently or log
+      if (!formData) {
+        toast.error("Error running analysis. Check console for details.");
+      }
     } finally {
       clearInterval(progressInterval);
       setTimeout(() => setLoading(false), 500);
@@ -87,14 +111,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
 
-      {/* Loading Overlay */}
-      {loading && (
+      {/* Loading Overlay (Hidden for Scenario 3 to show UI immediately) */}
+      {loading && !formData && (
         <div className="fixed inset-0 bg-white/85 backdrop-blur-[3px] z-[100] flex flex-col items-center justify-center p-8">
           <div className="w-full max-w-md space-y-6 text-center">
             <div className="flex justify-center">
               <Activity className="h-12 w-12 text-[#d51900] animate-pulse" />
             </div>
             <div className="space-y-2">
+              <span className="font-bold text-slate-800 tracking-tight">
+                {formData ? "PROOFING ANALYSIS" : "COMPARATOR ANALYSIS"}
+              </span>
               <div className="text-xl font-bold text-slate-800 uppercase tracking-tighter">
                 Analyzing Label Components... {progress}%
               </div>
@@ -128,10 +155,15 @@ const Index = () => {
             <ScanLine size={18} />
             <span className="text-sm font-bold tracking-tight uppercase">LabelX Proofreading</span>
             <span className="text-white/30 mx-1">|</span>
-            <span className="text-xs text-white/70 font-medium">Comparison Analysis</span>
+            <span className="text-xs text-white/70 font-medium">{formData ? "Proofing Analysis" : "Comparison Analysis"}</span>
           </div>
         </div>
         <div className="flex items-center gap-4">
+          {formData && (
+            <div className="hidden md:block">
+              <StepIndicator current={3} />
+            </div>
+          )}
           <ProfileDropdown />
         </div>
       </nav>
@@ -141,21 +173,21 @@ const Index = () => {
         <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center justify-between text-xs sticky top-[52px] z-30 shadow-sm">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">
-              <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">CR</span>
-              <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata?.cr_number || "CR-2025-0042"}</span>
+              <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[10px]">CR Number</span>
+              <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.cr_number || "CR-2025-0042"}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">SKU</span>
-              <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata?.part_number || "08714729-MX"}</span>
+              <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[10px]">SKU</span>
+              <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.part_number || "08714729-MX"}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">REV</span>
-              <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata?.label_version || "Rev B → Rev C"}</span>
+              <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[10px]">Revision</span>
+              <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.label_version || "REV-D"}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[#94a3b8] font-bold uppercase tracking-wider text-[10px]">
-            <Activity className="h-3 w-3 mr-1 text-green-500" />
-            <span>System Operational</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[#94a3b8] font-bold tracking-widest uppercase text-[11px]">Requested By</span>
+            <span className="text-[#334155] font-semibold text-[13px]">{formData.metadata.requested_by || "Athmika"}</span>
           </div>
         </div>
       )}
@@ -171,8 +203,8 @@ const Index = () => {
                 key={idx}
                 onClick={() => setSelectedResultIndex(idx)}
                 className={`px-4 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border shrink-0 ${selectedResultIndex === idx
-                    ? "bg-[#d51900] text-white border-[#d51900] shadow-sm"
-                    : "bg-white text-slate-500 border-slate-200 hover:border-slate-400 hover:bg-slate-50"
+                  ? "bg-[#d51900] text-white border-[#d51900] shadow-sm"
+                  : "bg-white text-slate-500 border-slate-200 hover:border-slate-400 hover:bg-slate-50"
                   }`}
               >
                 {res.filename || `Label ${idx + 1}`}
@@ -183,36 +215,36 @@ const Index = () => {
 
         <div className="px-6 py-6 space-y-6 pb-16 max-w-[1600px] mx-auto w-full">
 
-          {/* ── Upload Section ── */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Dropzone
-                label="UPLOAD CURRENT VERSION LABEL (PDF / IMAGE)"
-                files={baseFile}
-                onFilesSelect={setBaseFile}
-                multiple={false}
-              />
-              <Dropzone
-                label="UPLOAD NEW VERSION LABEL"
-                files={childFiles}
-                onFilesSelect={setChildFiles}
-                multiple={true}
-              />
+          {/* ── Upload Section (Hidden in Scenario 3) ── */}
+          {!formData && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Dropzone
+                  label="UPLOAD CURRENT VERSION LABEL (PDF / IMAGE)"
+                  files={baseFile}
+                  onFilesSelect={setBaseFile}
+                  multiple={false}
+                  alwaysShowUploadBox={true}
+                />
+                <Dropzone
+                  label="UPLOAD NEW VERSION LABEL"
+                  files={childFiles}
+                  onFilesSelect={setChildFiles}
+                  multiple={true}
+                  alwaysShowUploadBox={true}
+                />
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={handleRunAnalysis}
+                  disabled={loading}
+                  className="px-8 py-3 bg-primary text-white font-bold rounded shadow-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2 tracking-wide text-sm"
+                >
+                  {loading ? "ANALYZING..." : "RUN COMPARATOR ANALYSIS"}
+                </button>
+              </div>
             </div>
-            <div className="flex justify-center">
-              <button
-                onClick={handleRunAnalysis}
-                disabled={loading}
-                className="flex items-center justify-center gap-2 bg-[#d51900] hover:bg-[#b01300] text-white px-12 py-3 text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                {loading ? (
-                  <><RefreshCw className="h-4 w-4 animate-spin" /> Processing {progress}%</>
-                ) : (
-                  formData ? "RUN PROOFING ANALYSIS" : "RUN COMPARATOR ANALYSIS"
-                )}
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* ── Visual Diff Viewer ── */}
           <VisualDiffViewer
@@ -230,14 +262,16 @@ const Index = () => {
       </main>
 
       {/* Footer action bar — sticky */}
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 px-8 py-3.5 flex items-center justify-between z-40 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+      <div className="sticky bottom-0 bg-white border-t border-[#e2e8f0] px-8 py-2.5 flex items-center justify-between z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         <div className="font-mono text-xs text-slate-400 font-medium tracking-wide flex items-center gap-4">
           <span>Generated: {new Date().toISOString().split("T")[0]}</span>
-          <span>Ref: {formData?.metadata?.cr_number || "CR-2025-0042"}</span>
+          {formData && (
+            <span>Ref: {formData?.metadata?.cr_number || "CR-2025-0042"}</span>
+          )}
         </div>
         <button
           onClick={() => navigate('/report', { state: { scenario: formData ? 'C' : 'A', formData } })}
-          className="flex items-center gap-2 bg-[#d51900] text-white px-6 py-2.5 text-[13px] font-bold uppercase tracking-widest hover:bg-[#b01300] transition-colors shadow-sm"
+          className="flex items-center gap-2 bg-[#d51900] text-white px-8 py-3 text-[13px] font-bold uppercase tracking-widest hover:bg-[#b01300] transition-colors rounded-lg shadow-md"
         >
           <FileText className="w-4 h-4" />
           Generate Report

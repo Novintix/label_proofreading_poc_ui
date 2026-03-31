@@ -406,17 +406,17 @@ const ChangeRequestForm = () => {
     </div>
 
       {/* Static Footer Actions */}
-      <div className="shrink-0 border-t border-gray-200 bg-white px-6 py-3 flex items-center justify-end gap-3 shadow-sm">
+      <div className="shrink-0 border-t border-[#e2e8f0] bg-white px-8 py-2.5 flex items-center justify-end gap-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         <button
           onClick={saveDraft}
-          className="flex items-center gap-2 border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-wider"
+          className="flex items-center gap-2 border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-wider rounded-lg shadow-sm"
         >
           <Save size={14} />
           Save Draft
         </button>
         <button
           onClick={handleGenerate}
-          className="flex items-center gap-2 bg-primary px-6 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity uppercase tracking-wider shadow-sm"
+          className="flex items-center gap-2 bg-primary px-8 py-3 text-sm font-bold text-white hover:opacity-90 transition-opacity uppercase tracking-wider rounded-lg shadow-md"
         >
           Next: Review & Upload
           <ArrowRight size={14} />
